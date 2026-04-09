@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Log — ProjectForge{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="sm:flex sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Audit Log</h1>
+            <p class="mt-1 text-sm text-gray-500">Track all changes across the platform</p>
+        </div>
+    </div>
+
+    <div class="bg-white shadow rounded-lg p-4">
+        <form method="GET" action="/audit-log" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div>
+                    <label for="action" class="block text-sm font-medium text-gray-700 mb-1">Action</label>
+                    <select id="action" name="action"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm py-2 px-3 border">
+                        <option value="">All Actions</option>
+                        <option value="create" {% if filters.action == 'create' %}selected{% endif %}>Create</option>
+                        <option value="update" {% if filters.action == 'update' %}selected{% endif %}>Update</option>
+                        <option value="delete" {% if filters.action == 'delete' %}selected{% endif %}>Delete</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="entity_type" class="block text-sm font-medium text-gray-700 mb-1">Entity Type</label>
+                    <select id="entity_type" name="entity_type"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm py-2 px-3 border">
+                        <option value="">All Entities</option>
+                        <option value="project" {% if filters.entity_type == 'project' %}selected{% endif %}>Project</option>
+                        <option value="sprint" {% if filters.entity_type == 'sprint' %}selected{% endif %}>Sprint</option>
+                        <option value="ticket" {% if filters.entity_type == 'ticket' %}selected{% endif %}>Ticket</option>
+                        <option value="department" {% if filters.entity_type == 'department' %}selected{% endif %}>Department</option>
+                        <option value="user" {% if filters.entity_type == 'user' %}selected{% endif %}>User</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="actor" class="block text-sm font-medium text-gray-700 mb-1">Actor</label>
+                    <input type="text" id="actor" name="actor" value="{{ filters.actor or '' }}"
+                           placeholder="Username"
+                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm py-2 px-3 border">
+                </div>
+
+                <div>
+                    <label for="date_from" class="block text-sm font-medium text-gray-700 mb-1">From Date</label>
+                    <input type="date" id="date_from" name="date_from" value="{{ filters.date_from or '' }}"
+                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm py-2 px-3 border">
+                </div>
+
+                <div>
+                    <label for="date_to" class="block text-sm font-medium text-gray-700 mb-1">To Date</label>
+                    <input type="date" id="date_to" name="date_to" value="{{ filters.date_to or '' }}"
+                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm py-2 px-3 border">
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <button type="submit"
+                        class="inline-flex items-center rounded-md bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 transition-colors duration-150">
+                    <svg class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
+                    </svg>
+                    Apply Filters
+                </button>
+                <a href="/audit-log"
+                   class="inline-flex items-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition-colors duration-150">
+                    Clear
+                </a>
+            </div>
+        </form>
+    </div>
+
+    {% if audit_logs and audit_logs|length > 0 %}
+        <div class="bg-white shadow rounded-lg overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 table-row-hover">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Timestamp
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actor
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Action
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Entity Type
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Entity ID
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Changes
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for entry in audit_logs %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <div class="flex items-center">
+                                        <svg class="h-4 w-4 text-gray-400 mr-1.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        {{ entry.timestamp.strftime('%Y-%m-%d %H:%M:%S') if entry.timestamp else 'N/A' }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    <div class="flex items-center">
+                                        <span class="avatar-placeholder mr-2 flex-shrink-0" style="width:1.5rem;height:1.5rem;font-size:0.625rem;">
+                                            {{ entry.actor_username[:1]|upper if entry.actor_username else '?' }}
+                                        </span>
+                                        <span class="font-medium text-gray-900">{{ entry.actor_username or 'System' }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    {% if entry.action == 'create' %}
+                                        <span class="inline-flex items-center rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                                            Create
+                                        </span>
+                                    {% elif entry.action == 'update' %}
+                                        <span class="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20">
+                                            Update
+                                        </span>
+                                    {% elif entry.action == 'delete' %}
+                                        <span class="inline-flex items-center rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
+                                            Delete
+                                        </span>
+                                    {% else %}
+                                        <span class="inline-flex items-center rounded-full bg-gray-50 px-2.5 py-0.5 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-600/20">
+                                            {{ entry.action|capitalize }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    {% if entry.entity_type == 'project' %}
+                                        <span class="inline-flex items-center rounded-md bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-700/10">
+                                            Project
+                                        </span>
+                                    {% elif entry.entity_type == 'sprint' %}
+                                        <span class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
+                                            Sprint
+                                        </span>
+                                    {% elif entry.entity_type == 'ticket' %}
+                                        <span class="inline-flex items-center rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-700 ring-1 ring-inset ring-yellow-700/10">
+                                            Ticket
+                                        </span>
+                                    {% elif entry.entity_type == 'department' %}
+                                        <span class="inline-flex items-center rounded-md bg-teal-50 px-2 py-1 text-xs font-medium text-teal-700 ring-1 ring-inset ring-teal-700/10">
+                                            Department
+                                        </span>
+                                    {% elif entry.entity_type == 'user' %}
+                                        <span class="inline-flex items-center rounded-md bg-orange-50 px-2 py-1 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-700/10">
+                                            User
+                                        </span>
+                                    {% else %}
+                                        <span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-700/10">
+                                            {{ entry.entity_type|capitalize if entry.entity_type else 'Unknown' }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
+                                    {{ entry.entity_id or 'N/A' }}
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-500 max-w-xs">
+                                    {% if entry.changes %}
+                                        <div class="line-clamp-2 text-xs text-gray-600" title="{{ entry.changes }}">
+                                            {{ entry.changes }}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-gray-400 italic text-xs">No details</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if total_pages is defined and total_pages > 1 %}
+                <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                    <div class="flex-1 flex justify-between sm:hidden">
+                        {% if page > 1 %}
+                            <a href="?page={{ page - 1 }}{% if filters.action %}&action={{ filters.action }}{% endif %}{% if filters.entity_type %}&entity_type={{ filters.entity_type }}{% endif %}{% if filters.actor %}&actor={{ filters.actor }}{% endif %}{% if filters.date_from %}&date_from={{ filters.date_from }}{% endif %}{% if filters.date_to %}&date_to={{ filters.date_to }}{% endif %}"
+                               class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                Previous
+                            </a>
+                        {% else %}
+                            <span class="relative inline-flex items-center rounded-md border border-gray-300 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-400 cursor-not-allowed">
+                                Previous
+                            </span>
+                        {% endif %}
+                        {% if page < total_pages %}
+                            <a href="?page={{ page + 1 }}{% if filters.action %}&action={{ filters.action }}{% endif %}{% if filters.entity_type %}&entity_type={{ filters.entity_type }}{% endif %}{% if filters.actor %}&actor={{ filters.actor }}{% endif %}{% if filters.date_from %}&date_from={{ filters.date_from }}{% endif %}{% if filters.date_to %}&date_to={{ filters.date_to }}{% endif %}"
+                               class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                Next
+                            </a>
+                        {% else %}
+                            <span class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-400 cursor-not-allowed">
+                                Next
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm text-gray-700">
+                                Showing page
+                                <span class="font-medium">{{ page }}</span>
+                                of
+                                <span class="font-medium">{{ total_pages }}</span>
+                                {% if total_count is defined %}
+                                    (<span class="font-medium">{{ total_count }}</span> total entries)
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div>
+                            <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                                {% if page > 1 %}
+                                    <a href="?page={{ page - 1 }}{% if filters.action %}&action={{ filters.action }}{% endif %}{% if filters.entity_type %}&entity_type={{ filters.entity_type }}{% endif %}{% if filters.actor %}&actor={{ filters.actor }}{% endif %}{% if filters.date_from %}&date_from={{ filters.date_from }}{% endif %}{% if filters.date_to %}&date_to={{ filters.date_to }}{% endif %}"
+                                       class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+                                        <span class="sr-only">Previous</span>
+                                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+                                        </svg>
+                                    </a>
+                                {% else %}
+                                    <span class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-300 ring-1 ring-inset ring-gray-300 cursor-not-allowed">
+                                        <span class="sr-only">Previous</span>
+                                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+                                        </svg>
+                                    </span>
+                                {% endif %}
+
+                                {% set start_page = [1, page - 2]|max %}
+                                {% set end_page = [total_pages, page + 2]|min %}
+
+                                {% if start_page > 1 %}
+                                    <a href="?page=1{% if filters.action %}&action={{ filters.action }}{% endif %}{% if filters.entity_type %}&entity_type={{ filters.entity_type }}{% endif %}{% if filters.actor %}&actor={{ filters.actor }}{% endif %}{% if filters.date_from %}&date_from={{ filters.date_from }}{% endif %}{% if filters.date_to %}&date_to={{ filters.date_to }}{% endif %}"
+                                       class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+                                        1
+                                    </a>
+                                    {% if start_page > 2 %}
+                                        <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300">
+                                            &hellip;
+                                        </span>
+                                    {% endif %}
+                                {% endif %}
+
+                                {% for p in range(start_page, end_page + 1) %}
+                                    {% if p == page %}
+                                        <span class="relative z-10 inline-flex items-center bg-primary-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600">
+                                            {{ p }}
+                                        </span>
+                                    {% else %}
+                                        <a href="?page={{ p }}{% if filters.action %}&action={{ filters.action }}{% endif %}{% if filters.entity_type %}&entity_type={{ filters.entity_type }}{% endif %}{% if filters.actor %}&actor={{ filters.actor }}{% endif %}{% if filters.date_from %}&date_from={{ filters.date_from }}{% endif %}{% if filters.date_to %}&date_to={{ filters.date_to }}{% endif %}"
+                                           class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+                                            {{ p }}
+                                        </a>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if end_page < total_pages %}
+                                    {% if end_page < total_pages - 1 %}
+                                        <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300">
+                                            &hellip;
+                                        </span>
+                                    {% endif %}
+                                    <a href="?page={{ total_pages }}{% if filters.action %}&action={{ filters.action }}{% endif %}{% if filters.entity_type %}&entity_type={{ filters.entity_type }}{% endif %}{% if filters.actor %}&actor={{ filters.actor }}{% endif %}{% if filters.date_from %}&date_from={{ filters.date_from }}{% endif %}{% if filters.date_to %}&date_to={{ filters.date_to }}{% endif %}"
+                                       class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+                                        {{ total_pages }}
+                                    </a>
+                                {% endif %}
+
+                                {% if page < total_pages %}
+                                    <a href="?page={{ page + 1 }}{% if filters.action %}&action={{ filters.action }}{% endif %}{% if filters.entity_type %}&entity_type={{ filters.entity_type }}{% endif %}{% if filters.actor %}&actor={{ filters.actor }}{% endif %}{% if filters.date_from %}&date_from={{ filters.date_from }}{% endif %}{% if filters.date_to %}&date_to={{ filters.date_to }}{% endif %}"
+                                       class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+                                        <span class="sr-only">Next</span>
+                                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+                                        </svg>
+                                    </a>
+                                {% else %}
+                                    <span class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-300 ring-1 ring-inset ring-gray-300 cursor-not-allowed">
+                                        <span class="sr-only">Next</span>
+                                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+                                        </svg>
+                                    </span>
+                                {% endif %}
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-6 py-16 text-center">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                </svg>
+                <h3 class="mt-4 text-lg font-semibold text-gray-900">No audit log entries found</h3>
+                <p class="mt-2 text-sm text-gray-500">
+                    {% if filters.action or filters.entity_type or filters.actor or filters.date_from or filters.date_to %}
+                        No entries match your current filters. Try adjusting or clearing the filters.
+                    {% else %}
+                        Audit entries will appear here as changes are made across the platform.
+                    {% endif %}
+                </p>
+                {% if filters.action or filters.entity_type or filters.actor or filters.date_from or filters.date_to %}
+                    <div class="mt-6">
+                        <a href="/audit-log"
+                           class="inline-flex items-center rounded-md bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 transition-colors duration-150">
+                            Clear All Filters
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

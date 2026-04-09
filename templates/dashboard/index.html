@@ -1,0 +1,532 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — ProjectForge{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="md:flex md:items-center md:justify-between">
+        <div class="min-w-0 flex-1">
+            <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+                Analytics Dashboard
+            </h1>
+            <p class="mt-1 text-sm text-gray-500">
+                Overview of project health, sprint progress, and team activity.
+            </p>
+        </div>
+        <div class="mt-4 flex md:ml-4 md:mt-0">
+            <span class="inline-flex items-center rounded-full bg-primary-100 px-3 py-1 text-sm font-medium text-primary-700">
+                {{ current_user.role }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
+        <!-- Total Projects -->
+        <div class="overflow-hidden rounded-lg bg-white shadow card-hover">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-6 w-6 text-primary-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
+                        </svg>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="truncate text-sm font-medium text-gray-500">Total Projects</dt>
+                            <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">{{ stats.total_projects }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-5 py-3">
+                <div class="text-sm">
+                    <a href="/projects" class="font-medium text-primary-600 hover:text-primary-500">View all</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Sprints -->
+        <div class="overflow-hidden rounded-lg bg-white shadow card-hover">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                        </svg>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="truncate text-sm font-medium text-gray-500">Active Sprints</dt>
+                            <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">{{ stats.active_sprints }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-5 py-3">
+                <div class="text-sm">
+                    <span class="font-medium text-green-600">{{ stats.active_sprints }} currently running</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Open Tickets -->
+        <div class="overflow-hidden rounded-lg bg-white shadow card-hover">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-6 w-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z" />
+                        </svg>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="truncate text-sm font-medium text-gray-500">Open Tickets</dt>
+                            <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">{{ stats.open_tickets }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-5 py-3">
+                <div class="text-sm">
+                    <span class="font-medium text-yellow-600">Awaiting resolution</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overdue Tickets -->
+        <div class="overflow-hidden rounded-lg bg-white shadow card-hover">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                        </svg>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="truncate text-sm font-medium text-gray-500">Overdue Tickets</dt>
+                            <dd class="mt-1 text-3xl font-semibold tracking-tight text-red-600">{{ stats.overdue_tickets }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-5 py-3">
+                <div class="text-sm">
+                    {% if stats.overdue_tickets > 0 %}
+                        <span class="font-medium text-red-600">Needs attention</span>
+                    {% else %}
+                        <span class="font-medium text-green-600">All on track</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Hours Logged -->
+        <div class="overflow-hidden rounded-lg bg-white shadow card-hover">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-6 w-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="truncate text-sm font-medium text-gray-500">Hours Logged</dt>
+                            <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">{{ stats.total_hours_logged }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-5 py-3">
+                <div class="text-sm">
+                    <span class="font-medium text-indigo-600">Total tracked</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <!-- Ticket Status Distribution -->
+        <div class="overflow-hidden rounded-lg bg-white shadow">
+            <div class="border-b border-gray-200 px-6 py-4">
+                <h2 class="text-lg font-semibold text-gray-900">Ticket Status Distribution</h2>
+                <p class="mt-1 text-sm text-gray-500">Breakdown of all tickets by current status</p>
+            </div>
+            <div class="p-6">
+                {% if ticket_status_distribution and ticket_status_distribution|length > 0 %}
+                    {% set max_count = namespace(val=1) %}
+                    {% for item in ticket_status_distribution %}
+                        {% if item.count > max_count.val %}
+                            {% set max_count.val = item.count %}
+                        {% endif %}
+                    {% endfor %}
+                    <div class="space-y-4">
+                        {% for item in ticket_status_distribution %}
+                            {% set percentage = (item.count / max_count.val * 100) if max_count.val > 0 else 0 %}
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-sm font-medium text-gray-700 capitalize">
+                                        {{ item.status | replace('_', ' ') }}
+                                    </span>
+                                    <span class="text-sm font-semibold text-gray-900">{{ item.count }}</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-3">
+                                    {% if item.status == 'backlog' %}
+                                        <div class="bg-gray-400 h-3 rounded-full transition-all duration-500" style="width: {{ percentage }}%"></div>
+                                    {% elif item.status == 'todo' %}
+                                        <div class="bg-blue-400 h-3 rounded-full transition-all duration-500" style="width: {{ percentage }}%"></div>
+                                    {% elif item.status == 'in_progress' %}
+                                        <div class="bg-yellow-400 h-3 rounded-full transition-all duration-500" style="width: {{ percentage }}%"></div>
+                                    {% elif item.status == 'in_review' %}
+                                        <div class="bg-purple-400 h-3 rounded-full transition-all duration-500" style="width: {{ percentage }}%"></div>
+                                    {% elif item.status == 'done' %}
+                                        <div class="bg-green-500 h-3 rounded-full transition-all duration-500" style="width: {{ percentage }}%"></div>
+                                    {% elif item.status == 'cancelled' %}
+                                        <div class="bg-red-400 h-3 rounded-full transition-all duration-500" style="width: {{ percentage }}%"></div>
+                                    {% else %}
+                                        <div class="bg-primary-400 h-3 rounded-full transition-all duration-500" style="width: {{ percentage }}%"></div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="mt-6 flex flex-wrap gap-3">
+                        <span class="inline-flex items-center text-xs text-gray-600">
+                            <span class="mr-1.5 inline-block h-2.5 w-2.5 rounded-full bg-gray-400"></span>Backlog
+                        </span>
+                        <span class="inline-flex items-center text-xs text-gray-600">
+                            <span class="mr-1.5 inline-block h-2.5 w-2.5 rounded-full bg-blue-400"></span>To Do
+                        </span>
+                        <span class="inline-flex items-center text-xs text-gray-600">
+                            <span class="mr-1.5 inline-block h-2.5 w-2.5 rounded-full bg-yellow-400"></span>In Progress
+                        </span>
+                        <span class="inline-flex items-center text-xs text-gray-600">
+                            <span class="mr-1.5 inline-block h-2.5 w-2.5 rounded-full bg-purple-400"></span>In Review
+                        </span>
+                        <span class="inline-flex items-center text-xs text-gray-600">
+                            <span class="mr-1.5 inline-block h-2.5 w-2.5 rounded-full bg-green-500"></span>Done
+                        </span>
+                        <span class="inline-flex items-center text-xs text-gray-600">
+                            <span class="mr-1.5 inline-block h-2.5 w-2.5 rounded-full bg-red-400"></span>Cancelled
+                        </span>
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                        </svg>
+                        <p class="mt-2 text-sm text-gray-500">No ticket data available yet.</p>
+                        <p class="text-xs text-gray-400">Create tickets in your projects to see distribution.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Activity Feed -->
+        <div class="overflow-hidden rounded-lg bg-white shadow">
+            <div class="border-b border-gray-200 px-6 py-4">
+                <h2 class="text-lg font-semibold text-gray-900">Recent Activity</h2>
+                <p class="mt-1 text-sm text-gray-500">Latest actions across all projects</p>
+            </div>
+            <div class="p-6">
+                {% if recent_activities and recent_activities|length > 0 %}
+                    <div class="flow-root">
+                        <ul role="list" class="-mb-8">
+                            {% for activity in recent_activities %}
+                                <li>
+                                    <div class="relative pb-8">
+                                        {% if not loop.last %}
+                                            <span class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+                                        {% endif %}
+                                        <div class="relative flex space-x-3">
+                                            <div>
+                                                {% if activity.action == 'created' %}
+                                                    <span class="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 ring-8 ring-white">
+                                                        <svg class="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                                        </svg>
+                                                    </span>
+                                                {% elif activity.action == 'updated' %}
+                                                    <span class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 ring-8 ring-white">
+                                                        <svg class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                                        </svg>
+                                                    </span>
+                                                {% elif activity.action == 'deleted' %}
+                                                    <span class="flex h-8 w-8 items-center justify-center rounded-full bg-red-100 ring-8 ring-white">
+                                                        <svg class="h-4 w-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                                        </svg>
+                                                    </span>
+                                                {% else %}
+                                                    <span class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 ring-8 ring-white">
+                                                        <svg class="h-4 w-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                                                        </svg>
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
+                                                <div>
+                                                    <p class="text-sm text-gray-700">
+                                                        <span class="font-medium text-gray-900">{{ activity.username }}</span>
+                                                        {{ activity.action }}
+                                                        <span class="font-medium text-gray-900 capitalize">{{ activity.entity_type | replace('_', ' ') }}</span>
+                                                        {% if activity.entity_name %}
+                                                            "<span class="text-primary-600">{{ activity.entity_name }}</span>"
+                                                        {% endif %}
+                                                    </p>
+                                                </div>
+                                                <div class="whitespace-nowrap text-right text-xs text-gray-500">
+                                                    <time>{{ activity.timestamp }}</time>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% if current_user.role in ['super_admin', 'admin'] %}
+                        <div class="mt-6 text-center">
+                            <a href="/audit-log" class="text-sm font-medium text-primary-600 hover:text-primary-500">
+                                View full audit log &rarr;
+                            </a>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-8">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p class="mt-2 text-sm text-gray-500">No recent activity.</p>
+                        <p class="text-xs text-gray-400">Activity will appear here as your team works on projects.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Health Overview -->
+    <div class="overflow-hidden rounded-lg bg-white shadow">
+        <div class="border-b border-gray-200 px-6 py-4">
+            <h2 class="text-lg font-semibold text-gray-900">Project Health Overview</h2>
+            <p class="mt-1 text-sm text-gray-500">Status and progress of all projects</p>
+        </div>
+        <div class="p-6">
+            {% if projects and projects|length > 0 %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 table-row-hover">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">Project</th>
+                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
+                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Open Tickets</th>
+                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Done Tickets</th>
+                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Progress</th>
+                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Health</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            {% for project in projects %}
+                                <tr>
+                                    <td class="whitespace-nowrap py-4 pl-4 pr-3 sm:pl-0">
+                                        <a href="/projects/{{ project.id }}" class="text-sm font-medium text-primary-600 hover:text-primary-500">
+                                            {{ project.name }}
+                                        </a>
+                                        {% if project.department_name %}
+                                            <p class="text-xs text-gray-500 mt-0.5">{{ project.department_name }}</p>
+                                        {% endif %}
+                                    </td>
+                                    <td class="whitespace-nowrap px-3 py-4 text-sm">
+                                        {% if project.status == 'active' %}
+                                            <span class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                                                Active
+                                            </span>
+                                        {% elif project.status == 'planning' %}
+                                            <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20">
+                                                Planning
+                                            </span>
+                                        {% elif project.status == 'on_hold' %}
+                                            <span class="inline-flex items-center rounded-full bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-700 ring-1 ring-inset ring-yellow-600/20">
+                                                On Hold
+                                            </span>
+                                        {% elif project.status == 'completed' %}
+                                            <span class="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-600/20">
+                                                Completed
+                                            </span>
+                                        {% elif project.status == 'archived' %}
+                                            <span class="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-500 ring-1 ring-inset ring-gray-500/20">
+                                                Archived
+                                            </span>
+                                        {% else %}
+                                            <span class="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/20">
+                                                {{ project.status | capitalize }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-700">
+                                        {{ project.open_tickets }}
+                                    </td>
+                                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-700">
+                                        {{ project.done_tickets }}
+                                    </td>
+                                    <td class="whitespace-nowrap px-3 py-4 text-sm">
+                                        {% set total = project.open_tickets + project.done_tickets %}
+                                        {% set pct = ((project.done_tickets / total) * 100) | int if total > 0 else 0 %}
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-24 bg-gray-200 rounded-full h-2">
+                                                <div class="bg-primary-500 h-2 rounded-full transition-all duration-500" style="width: {{ pct }}%"></div>
+                                            </div>
+                                            <span class="text-xs font-medium text-gray-600">{{ pct }}%</span>
+                                        </div>
+                                    </td>
+                                    <td class="whitespace-nowrap px-3 py-4 text-sm">
+                                        {% set total = project.open_tickets + project.done_tickets %}
+                                        {% set pct = ((project.done_tickets / total) * 100) | int if total > 0 else 0 %}
+                                        {% if project.status == 'completed' %}
+                                            <span class="inline-flex items-center gap-1 text-green-600">
+                                                <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+                                                </svg>
+                                                <span class="text-xs font-medium">Complete</span>
+                                            </span>
+                                        {% elif project.overdue_tickets is defined and project.overdue_tickets > 0 %}
+                                            <span class="inline-flex items-center gap-1 text-red-600">
+                                                <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                                </svg>
+                                                <span class="text-xs font-medium">At Risk</span>
+                                            </span>
+                                        {% elif pct >= 50 %}
+                                            <span class="inline-flex items-center gap-1 text-green-600">
+                                                <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.25a.75.75 0 00-1.5 0v2.5h-2.5a.75.75 0 000 1.5h2.5v2.5a.75.75 0 001.5 0v-2.5h2.5a.75.75 0 000-1.5h-2.5v-2.5z" clip-rule="evenodd" />
+                                                </svg>
+                                                <span class="text-xs font-medium">On Track</span>
+                                            </span>
+                                        {% elif pct >= 25 %}
+                                            <span class="inline-flex items-center gap-1 text-yellow-600">
+                                                <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd" />
+                                                </svg>
+                                                <span class="text-xs font-medium">Needs Attention</span>
+                                            </span>
+                                        {% else %}
+                                            <span class="inline-flex items-center gap-1 text-gray-500">
+                                                <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd" />
+                                                </svg>
+                                                <span class="text-xs font-medium">Early Stage</span>
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-12">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
+                    </svg>
+                    <h3 class="mt-2 text-sm font-semibold text-gray-900">No projects yet</h3>
+                    <p class="mt-1 text-sm text-gray-500">Get started by creating your first project.</p>
+                    <div class="mt-6">
+                        <a href="/projects/create"
+                           class="inline-flex items-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600">
+                            <svg class="-ml-0.5 mr-1.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                            </svg>
+                            New Project
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Actions (Role-guarded) -->
+    {% if current_user.role in ['super_admin', 'admin', 'project_manager'] %}
+        <div class="overflow-hidden rounded-lg bg-white shadow">
+            <div class="border-b border-gray-200 px-6 py-4">
+                <h2 class="text-lg font-semibold text-gray-900">Quick Actions</h2>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <a href="/projects/create"
+                       class="relative flex items-center space-x-3 rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm hover:border-primary-400 hover:ring-1 hover:ring-primary-400 transition-all duration-150">
+                        <div class="flex-shrink-0">
+                            <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-50">
+                                <svg class="h-6 w-6 text-primary-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <span class="absolute inset-0" aria-hidden="true"></span>
+                            <p class="text-sm font-medium text-gray-900">New Project</p>
+                            <p class="truncate text-xs text-gray-500">Create a new project</p>
+                        </div>
+                    </a>
+
+                    <a href="/projects"
+                       class="relative flex items-center space-x-3 rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm hover:border-primary-400 hover:ring-1 hover:ring-primary-400 transition-all duration-150">
+                        <div class="flex-shrink-0">
+                            <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50">
+                                <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <span class="absolute inset-0" aria-hidden="true"></span>
+                            <p class="text-sm font-medium text-gray-900">Manage Projects</p>
+                            <p class="truncate text-xs text-gray-500">View all projects</p>
+                        </div>
+                    </a>
+
+                    {% if current_user.role in ['super_admin', 'admin'] %}
+                        <a href="/users"
+                           class="relative flex items-center space-x-3 rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm hover:border-primary-400 hover:ring-1 hover:ring-primary-400 transition-all duration-150">
+                            <div class="flex-shrink-0">
+                                <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50">
+                                    <svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                                    </svg>
+                                </span>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <span class="absolute inset-0" aria-hidden="true"></span>
+                                <p class="text-sm font-medium text-gray-900">Manage Users</p>
+                                <p class="truncate text-xs text-gray-500">User administration</p>
+                            </div>
+                        </a>
+
+                        <a href="/audit-log"
+                           class="relative flex items-center space-x-3 rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm hover:border-primary-400 hover:ring-1 hover:ring-primary-400 transition-all duration-150">
+                            <div class="flex-shrink-0">
+                                <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-50">
+                                    <svg class="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                    </svg>
+                                </span>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <span class="absolute inset-0" aria-hidden="true"></span>
+                                <p class="text-sm font-medium text-gray-900">Audit Log</p>
+                                <p class="truncate text-xs text-gray-500">View system activity</p>
+                            </div>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,665 @@
+{% extends "base.html" %}
+
+{% block title %}{{ ticket.identifier }} — {{ ticket.title }} | ProjectForge{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center space-x-2 text-sm text-gray-500">
+        <a href="/projects" class="hover:text-primary-600 transition-colors">Projects</a>
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        <a href="/projects/{{ ticket.project_id }}" class="hover:text-primary-600 transition-colors">{{ project.name if project else 'Project' }}</a>
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        <span class="text-gray-700 font-medium">{{ ticket.identifier }}</span>
+    </nav>
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div class="flex-1 min-w-0">
+            <div class="flex items-center space-x-3 mb-1">
+                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
+                    {% if ticket.type == 'bug' %}
+                        bg-red-100 text-red-800
+                    {% elif ticket.type == 'feature' %}
+                        bg-purple-100 text-purple-800
+                    {% elif ticket.type == 'task' %}
+                        bg-blue-100 text-blue-800
+                    {% elif ticket.type == 'improvement' %}
+                        bg-teal-100 text-teal-800
+                    {% else %}
+                        bg-gray-100 text-gray-800
+                    {% endif %}
+                ">
+                    {% if ticket.type == 'bug' %}
+                        <svg class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/></svg>
+                    {% elif ticket.type == 'feature' %}
+                        <svg class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 0110 2zm0 13a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 0110 15zm-6.5-5a.75.75 0 01.75-.75h1.5a.75.75 0 010 1.5h-1.5A.75.75 0 013.5 10zm13 0a.75.75 0 01.75-.75h.5a.75.75 0 010 1.5h-.5a.75.75 0 01-.75-.75z"/></svg>
+                    {% elif ticket.type == 'task' %}
+                        <svg class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd"/></svg>
+                    {% else %}
+                        <svg class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.25a.75.75 0 00-1.5 0v2.5h-2.5a.75.75 0 000 1.5h2.5v2.5a.75.75 0 001.5 0v-2.5h2.5a.75.75 0 000-1.5h-2.5v-2.5z" clip-rule="evenodd"/></svg>
+                    {% endif %}
+                    {{ ticket.type|capitalize }}
+                </span>
+                <span class="text-sm text-gray-500 font-mono">{{ ticket.identifier }}</span>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-900 break-words">{{ ticket.title }}</h1>
+        </div>
+        <div class="flex items-center space-x-2 flex-shrink-0">
+            {% if current_user and (current_user.role in ['super_admin', 'admin', 'project_manager', 'team_lead'] or (ticket.assignee_id and ticket.assignee_id == current_user.id) or (ticket.reporter_id and ticket.reporter_id == current_user.id)) %}
+                <a href="/tickets/{{ ticket.id }}/edit"
+                   class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition-colors">
+                    <svg class="mr-1.5 h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/>
+                    </svg>
+                    Edit
+                </a>
+            {% endif %}
+            {% if current_user and current_user.role in ['super_admin', 'admin', 'project_manager'] %}
+                <form method="POST" action="/tickets/{{ ticket.id }}/delete"
+                      onsubmit="return confirm('Are you sure you want to delete this ticket? This action cannot be undone.');">
+                    <button type="submit"
+                            class="inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 transition-colors">
+                        <svg class="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                        </svg>
+                        Delete
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Description -->
+            <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Description</h2>
+                </div>
+                <div class="px-6 py-4">
+                    {% if ticket.description %}
+                        <div class="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap">{{ ticket.description }}</div>
+                    {% else %}
+                        <p class="text-sm text-gray-400 italic">No description provided.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Status Transitions -->
+            {% if current_user and (current_user.role in ['super_admin', 'admin', 'project_manager', 'team_lead'] or (ticket.assignee_id and ticket.assignee_id == current_user.id)) %}
+            <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Transition Status</h2>
+                </div>
+                <div class="px-6 py-4">
+                    <div class="flex flex-wrap gap-2">
+                        {% set statuses = ['backlog', 'todo', 'in_progress', 'in_review', 'done', 'cancelled'] %}
+                        {% for status in statuses %}
+                            {% if status != ticket.status %}
+                                <form method="POST" action="/tickets/{{ ticket.id }}/transition" class="inline">
+                                    <input type="hidden" name="status" value="{{ status }}">
+                                    <button type="submit"
+                                            class="inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium transition-colors
+                                                {% if status == 'done' %}
+                                                    bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20 hover:bg-green-100
+                                                {% elif status == 'cancelled' %}
+                                                    bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20 hover:bg-red-100
+                                                {% elif status == 'in_progress' %}
+                                                    bg-yellow-50 text-yellow-700 ring-1 ring-inset ring-yellow-600/20 hover:bg-yellow-100
+                                                {% elif status == 'in_review' %}
+                                                    bg-purple-50 text-purple-700 ring-1 ring-inset ring-purple-600/20 hover:bg-purple-100
+                                                {% elif status == 'todo' %}
+                                                    bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20 hover:bg-blue-100
+                                                {% else %}
+                                                    bg-gray-50 text-gray-700 ring-1 ring-inset ring-gray-600/20 hover:bg-gray-100
+                                                {% endif %}
+                                            ">
+                                        → {{ status|replace('_', ' ')|title }}
+                                    </button>
+                                </form>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Subtasks -->
+            {% if subtasks is defined and subtasks %}
+            <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg font-semibold text-gray-900">Subtasks</h2>
+                        <span class="text-sm text-gray-500">{{ subtasks|length }} subtask{{ 's' if subtasks|length != 1 else '' }}</span>
+                    </div>
+                </div>
+                <div class="divide-y divide-gray-100">
+                    {% for subtask in subtasks %}
+                    <div class="px-6 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                        <div class="flex items-center space-x-3 min-w-0">
+                            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
+                                {% if subtask.status == 'done' %}
+                                    bg-green-100 text-green-800
+                                {% elif subtask.status == 'in_progress' %}
+                                    bg-yellow-100 text-yellow-800
+                                {% elif subtask.status == 'cancelled' %}
+                                    bg-red-100 text-red-800
+                                {% else %}
+                                    bg-gray-100 text-gray-800
+                                {% endif %}
+                            ">
+                                {{ subtask.status|replace('_', ' ')|title }}
+                            </span>
+                            <a href="/tickets/{{ subtask.id }}" class="text-sm font-medium text-primary-600 hover:text-primary-800 truncate">
+                                {{ subtask.identifier }} — {{ subtask.title }}
+                            </a>
+                        </div>
+                        {% if subtask.assignee %}
+                            <span class="text-xs text-gray-500 flex-shrink-0 ml-2">{{ subtask.assignee.username }}</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Comments Section -->
+            <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg font-semibold text-gray-900">Comments</h2>
+                        <span class="text-sm text-gray-500">{{ comments|length if comments else 0 }} comment{{ 's' if not comments or comments|length != 1 else '' }}</span>
+                    </div>
+                </div>
+
+                <!-- Comment List -->
+                <div class="divide-y divide-gray-100">
+                    {% if comments %}
+                        {% for comment in comments %}
+                        <div class="px-6 py-4 {% if comment.is_internal %}bg-amber-50/50{% endif %}" id="comment-{{ comment.id }}">
+                            <div class="flex items-start space-x-3">
+                                <div class="avatar-placeholder flex-shrink-0">
+                                    {{ comment.user.username[0]|upper if comment.user else '?' }}
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center justify-between flex-wrap gap-1">
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-sm font-semibold text-gray-900">{{ comment.user.username if comment.user else 'Unknown' }}</span>
+                                            {% if comment.is_internal %}
+                                                <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                                                    <svg class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd"/></svg>
+                                                    Internal
+                                                </span>
+                                            {% endif %}
+                                            <span class="text-xs text-gray-500">{{ comment.created_at.strftime('%b %d, %Y at %I:%M %p') if comment.created_at else '' }}</span>
+                                        </div>
+                                        {% if current_user and (current_user.id == comment.user_id or current_user.role in ['super_admin', 'admin']) %}
+                                        <div class="flex items-center space-x-1">
+                                            <a href="/tickets/{{ ticket.id }}/comments/{{ comment.id }}/edit"
+                                               class="text-gray-400 hover:text-primary-600 transition-colors p-1 rounded"
+                                               title="Edit comment">
+                                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/>
+                                                </svg>
+                                            </a>
+                                            <form method="POST" action="/tickets/{{ ticket.id }}/comments/{{ comment.id }}/delete"
+                                                  onsubmit="return confirm('Delete this comment?');" class="inline">
+                                                <button type="submit" class="text-gray-400 hover:text-red-600 transition-colors p-1 rounded" title="Delete comment">
+                                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mt-2 text-sm text-gray-700 whitespace-pre-wrap break-words">{{ comment.content }}</div>
+
+                                    <!-- Threaded Replies -->
+                                    {% if comment.replies is defined and comment.replies %}
+                                    <div class="mt-3 ml-4 border-l-2 border-gray-200 pl-4 space-y-3">
+                                        {% for reply in comment.replies %}
+                                        <div class="{% if reply.is_internal %}bg-amber-50/50 rounded-md p-2 -ml-2{% endif %}" id="comment-{{ reply.id }}">
+                                            <div class="flex items-center justify-between flex-wrap gap-1">
+                                                <div class="flex items-center space-x-2">
+                                                    <div class="avatar-placeholder" style="width:1.5rem;height:1.5rem;font-size:0.625rem;">
+                                                        {{ reply.user.username[0]|upper if reply.user else '?' }}
+                                                    </div>
+                                                    <span class="text-sm font-semibold text-gray-900">{{ reply.user.username if reply.user else 'Unknown' }}</span>
+                                                    {% if reply.is_internal %}
+                                                        <span class="inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-800">Internal</span>
+                                                    {% endif %}
+                                                    <span class="text-xs text-gray-500">{{ reply.created_at.strftime('%b %d, %Y at %I:%M %p') if reply.created_at else '' }}</span>
+                                                </div>
+                                                {% if current_user and (current_user.id == reply.user_id or current_user.role in ['super_admin', 'admin']) %}
+                                                <div class="flex items-center space-x-1">
+                                                    <form method="POST" action="/tickets/{{ ticket.id }}/comments/{{ reply.id }}/delete"
+                                                          onsubmit="return confirm('Delete this reply?');" class="inline">
+                                                        <button type="submit" class="text-gray-400 hover:text-red-600 transition-colors p-1 rounded" title="Delete reply">
+                                                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                                                            </svg>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="mt-1 text-sm text-gray-700 whitespace-pre-wrap break-words">{{ reply.content }}</div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="px-6 py-8 text-center">
+                            <svg class="mx-auto h-10 w-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"/>
+                            </svg>
+                            <p class="mt-2 text-sm text-gray-500">No comments yet. Be the first to comment.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Add Comment Form -->
+                {% if current_user %}
+                <div class="px-6 py-4 border-t border-gray-200 bg-gray-50/50">
+                    <form method="POST" action="/tickets/{{ ticket.id }}/comments">
+                        <div class="space-y-3">
+                            <div>
+                                <label for="content" class="block text-sm font-medium text-gray-700 mb-1">Add a comment</label>
+                                <textarea id="content"
+                                          name="content"
+                                          rows="3"
+                                          required
+                                          placeholder="Write your comment here..."
+                                          class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm auto-resize"></textarea>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    {% if current_user.role in ['super_admin', 'admin', 'project_manager', 'team_lead', 'developer'] %}
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="checkbox" name="is_internal" value="true"
+                                               class="rounded border-gray-300 text-amber-600 shadow-sm focus:ring-amber-500">
+                                        <span class="text-sm text-gray-600">
+                                            <svg class="inline h-4 w-4 text-amber-500 mr-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd"/></svg>
+                                            Internal note
+                                        </span>
+                                    </label>
+                                    {% endif %}
+                                    <input type="hidden" name="parent_comment_id" value="" id="parent_comment_id">
+                                </div>
+                                <button type="submit"
+                                        class="inline-flex items-center rounded-md bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 transition-colors">
+                                    <svg class="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/>
+                                    </svg>
+                                    Post Comment
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Time Entries Section -->
+            <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg font-semibold text-gray-900">Time Entries</h2>
+                        <div class="flex items-center space-x-3">
+                            <span class="text-sm text-gray-500">
+                                Total: <span class="font-semibold text-gray-900">{{ "%.1f"|format(total_hours) if total_hours else '0.0' }}h</span>
+                            </span>
+                            {% if total_billable_hours is defined and total_billable_hours %}
+                            <span class="text-sm text-gray-500">
+                                Billable: <span class="font-semibold text-green-700">{{ "%.1f"|format(total_billable_hours) }}h</span>
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Time Entry List -->
+                <div class="divide-y divide-gray-100">
+                    {% if time_entries %}
+                        {% for entry in time_entries %}
+                        <div class="px-6 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center space-x-4 min-w-0">
+                                <div class="flex-shrink-0">
+                                    <span class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-primary-100 text-primary-700 text-xs font-semibold">
+                                        {{ "%.1f"|format(entry.hours) }}h
+                                    </span>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-sm text-gray-900 truncate">{{ entry.description if entry.description else 'No description' }}</p>
+                                    <div class="flex items-center space-x-2 mt-0.5">
+                                        <span class="text-xs text-gray-500">{{ entry.user.username if entry.user else 'Unknown' }}</span>
+                                        <span class="text-xs text-gray-300">•</span>
+                                        <span class="text-xs text-gray-500">{{ entry.date.strftime('%b %d, %Y') if entry.date else (entry.created_at.strftime('%b %d, %Y') if entry.created_at else '') }}</span>
+                                        {% if entry.billable %}
+                                            <span class="text-xs text-gray-300">•</span>
+                                            <span class="inline-flex items-center rounded-full bg-green-100 px-1.5 py-0.5 text-xs font-medium text-green-700">Billable</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% if current_user and (current_user.id == entry.user_id or current_user.role in ['super_admin', 'admin', 'project_manager']) %}
+                            <form method="POST" action="/tickets/{{ ticket.id }}/time-entries/{{ entry.id }}/delete"
+                                  onsubmit="return confirm('Delete this time entry?');" class="flex-shrink-0 ml-2">
+                                <button type="submit" class="text-gray-400 hover:text-red-600 transition-colors p-1 rounded" title="Delete time entry">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                                    </svg>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="px-6 py-8 text-center">
+                            <svg class="mx-auto h-10 w-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <p class="mt-2 text-sm text-gray-500">No time entries logged yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Add Time Entry Form -->
+                {% if current_user %}
+                <div class="px-6 py-4 border-t border-gray-200 bg-gray-50/50">
+                    <form method="POST" action="/tickets/{{ ticket.id }}/time-entries">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label for="hours" class="block text-sm font-medium text-gray-700 mb-1">Hours <span class="text-red-500">*</span></label>
+                                <input type="number"
+                                       id="hours"
+                                       name="hours"
+                                       step="0.25"
+                                       min="0.25"
+                                       max="24"
+                                       required
+                                       placeholder="e.g. 1.5"
+                                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date <span class="text-red-500">*</span></label>
+                                <input type="date"
+                                       id="date"
+                                       name="date"
+                                       required
+                                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label for="time_description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                <input type="text"
+                                       id="time_description"
+                                       name="description"
+                                       placeholder="What did you work on?"
+                                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between mt-3">
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" name="billable" value="true"
+                                       class="rounded border-gray-300 text-green-600 shadow-sm focus:ring-green-500">
+                                <span class="text-sm text-gray-600">Billable</span>
+                            </label>
+                            <button type="submit"
+                                    class="inline-flex items-center rounded-md bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 transition-colors">
+                                <svg class="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Log Time
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Status & Details Card -->
+            <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Details</h2>
+                </div>
+                <div class="px-6 py-4 space-y-4">
+                    <!-- Status -->
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Status</dt>
+                        <dd class="mt-1">
+                            <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold
+                                {% if ticket.status == 'done' %}
+                                    bg-green-100 text-green-800
+                                {% elif ticket.status == 'in_progress' %}
+                                    bg-yellow-100 text-yellow-800
+                                {% elif ticket.status == 'in_review' %}
+                                    bg-purple-100 text-purple-800
+                                {% elif ticket.status == 'todo' %}
+                                    bg-blue-100 text-blue-800
+                                {% elif ticket.status == 'cancelled' %}
+                                    bg-red-100 text-red-800
+                                {% else %}
+                                    bg-gray-100 text-gray-800
+                                {% endif %}
+                            ">
+                                {{ ticket.status|replace('_', ' ')|title }}
+                            </span>
+                        </dd>
+                    </div>
+
+                    <!-- Priority -->
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</dt>
+                        <dd class="mt-1">
+                            <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold
+                                {% if ticket.priority == 'critical' %}
+                                    priority-critical
+                                {% elif ticket.priority == 'high' %}
+                                    priority-high
+                                {% elif ticket.priority == 'medium' %}
+                                    priority-medium
+                                {% elif ticket.priority == 'low' %}
+                                    priority-low
+                                {% else %}
+                                    bg-gray-100 text-gray-800
+                                {% endif %}
+                            ">
+                                {% if ticket.priority == 'critical' %}
+                                    <svg class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd"/></svg>
+                                {% elif ticket.priority == 'high' %}
+                                    <svg class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 17a.75.75 0 01-.75-.75V5.612L5.29 9.77a.75.75 0 01-1.08-1.04l5.25-5.5a.75.75 0 011.08 0l5.25 5.5a.75.75 0 11-1.08 1.04l-3.96-4.158V16.25A.75.75 0 0110 17z" clip-rule="evenodd"/></svg>
+                                {% elif ticket.priority == 'medium' %}
+                                    <svg class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 10a.75.75 0 01.75-.75h10.5a.75.75 0 010 1.5H4.75A.75.75 0 014 10z" clip-rule="evenodd"/></svg>
+                                {% elif ticket.priority == 'low' %}
+                                    <svg class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75v10.638l3.96-4.158a.75.75 0 111.08 1.04l-5.25 5.5a.75.75 0 01-1.08 0l-5.25-5.5a.75.75 0 111.08-1.04l3.96 4.158V3.75A.75.75 0 0110 3z" clip-rule="evenodd"/></svg>
+                                {% endif %}
+                                {{ ticket.priority|capitalize }}
+                            </span>
+                        </dd>
+                    </div>
+
+                    <!-- Type -->
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Type</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ ticket.type|capitalize if ticket.type else '—' }}</dd>
+                    </div>
+
+                    <!-- Story Points -->
+                    {% if ticket.story_points is defined and ticket.story_points is not none %}
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Story Points</dt>
+                        <dd class="mt-1">
+                            <span class="inline-flex items-center justify-center h-6 w-6 rounded-full bg-primary-100 text-primary-700 text-xs font-bold">
+                                {{ ticket.story_points }}
+                            </span>
+                        </dd>
+                    </div>
+                    {% endif %}
+
+                    <hr class="border-gray-200">
+
+                    <!-- Assignee -->
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Assignee</dt>
+                        <dd class="mt-1">
+                            {% if ticket.assignee %}
+                                <div class="flex items-center space-x-2">
+                                    <div class="avatar-placeholder" style="width:1.5rem;height:1.5rem;font-size:0.625rem;">
+                                        {{ ticket.assignee.username[0]|upper }}
+                                    </div>
+                                    <span class="text-sm text-gray-900">{{ ticket.assignee.username }}</span>
+                                </div>
+                            {% else %}
+                                <span class="text-sm text-gray-400 italic">Unassigned</span>
+                            {% endif %}
+                        </dd>
+                    </div>
+
+                    <!-- Reporter -->
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Reporter</dt>
+                        <dd class="mt-1">
+                            {% if ticket.reporter %}
+                                <div class="flex items-center space-x-2">
+                                    <div class="avatar-placeholder" style="width:1.5rem;height:1.5rem;font-size:0.625rem;">
+                                        {{ ticket.reporter.username[0]|upper }}
+                                    </div>
+                                    <span class="text-sm text-gray-900">{{ ticket.reporter.username }}</span>
+                                </div>
+                            {% elif ticket.creator %}
+                                <div class="flex items-center space-x-2">
+                                    <div class="avatar-placeholder" style="width:1.5rem;height:1.5rem;font-size:0.625rem;">
+                                        {{ ticket.creator.username[0]|upper }}
+                                    </div>
+                                    <span class="text-sm text-gray-900">{{ ticket.creator.username }}</span>
+                                </div>
+                            {% else %}
+                                <span class="text-sm text-gray-400 italic">Unknown</span>
+                            {% endif %}
+                        </dd>
+                    </div>
+
+                    <hr class="border-gray-200">
+
+                    <!-- Sprint -->
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Sprint</dt>
+                        <dd class="mt-1">
+                            {% if ticket.sprint %}
+                                <a href="/sprints/{{ ticket.sprint.id }}" class="text-sm text-primary-600 hover:text-primary-800 transition-colors">
+                                    {{ ticket.sprint.name }}
+                                </a>
+                            {% else %}
+                                <span class="text-sm text-gray-400 italic">No sprint</span>
+                            {% endif %}
+                        </dd>
+                    </div>
+
+                    <!-- Project -->
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Project</dt>
+                        <dd class="mt-1">
+                            {% if project %}
+                                <a href="/projects/{{ project.id }}" class="text-sm text-primary-600 hover:text-primary-800 transition-colors">
+                                    {{ project.name }}
+                                </a>
+                            {% elif ticket.project %}
+                                <a href="/projects/{{ ticket.project.id }}" class="text-sm text-primary-600 hover:text-primary-800 transition-colors">
+                                    {{ ticket.project.name }}
+                                </a>
+                            {% else %}
+                                <span class="text-sm text-gray-400 italic">—</span>
+                            {% endif %}
+                        </dd>
+                    </div>
+
+                    <!-- Parent Ticket -->
+                    {% if ticket.parent_ticket is defined and ticket.parent_ticket %}
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Parent Ticket</dt>
+                        <dd class="mt-1">
+                            <a href="/tickets/{{ ticket.parent_ticket.id }}" class="text-sm text-primary-600 hover:text-primary-800 transition-colors">
+                                {{ ticket.parent_ticket.identifier }} — {{ ticket.parent_ticket.title }}
+                            </a>
+                        </dd>
+                    </div>
+                    {% elif ticket.parent_id is defined and ticket.parent_id %}
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Parent Ticket</dt>
+                        <dd class="mt-1">
+                            <a href="/tickets/{{ ticket.parent_id }}" class="text-sm text-primary-600 hover:text-primary-800 transition-colors">
+                                View Parent
+                            </a>
+                        </dd>
+                    </div>
+                    {% endif %}
+
+                    <!-- Labels -->
+                    {% if ticket.labels is defined and ticket.labels %}
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Labels</dt>
+                        <dd class="mt-1 flex flex-wrap gap-1">
+                            {% for label in ticket.labels %}
+                                <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+                                    {{ label.name if label.name is defined else label }}
+                                </span>
+                            {% endfor %}
+                        </dd>
+                    </div>
+                    {% endif %}
+
+                    <hr class="border-gray-200">
+
+                    <!-- Dates -->
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Created</dt>
+                        <dd class="mt-1 text-sm text-gray-900">
+                            {{ ticket.created_at.strftime('%b %d, %Y at %I:%M %p') if ticket.created_at else '—' }}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Updated</dt>
+                        <dd class="mt-1 text-sm text-gray-900">
+                            {{ ticket.updated_at.strftime('%b %d, %Y at %I:%M %p') if ticket.updated_at else '—' }}
+                        </dd>
+                    </div>
+                    {% if ticket.due_date is defined and ticket.due_date %}
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</dt>
+                        <dd class="mt-1 text-sm text-gray-900">
+                            {{ ticket.due_date.strftime('%b %d, %Y') }}
+                        </dd>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set today's date as default for time entry date field
+        var dateInput = document.getElementById('date');
+        if (dateInput && !dateInput.value) {
+            var today = new Date();
+            var yyyy = today.getFullYear();
+            var mm = String(today.getMonth() + 1).padStart(2, '0');
+            var dd = String(today.getDate()).padStart(2, '0');
+            dateInput.value = yyyy + '-' + mm + '-' + dd;
+        }
+    });
+</script>
+{% endblock %}

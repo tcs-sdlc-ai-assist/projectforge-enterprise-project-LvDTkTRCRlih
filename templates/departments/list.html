@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Departments — ProjectForge{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="sm:flex sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Departments</h1>
+            <p class="mt-1 text-sm text-gray-500">Manage your organization's departments and team structure.</p>
+        </div>
+    </div>
+
+    {% if current_user and current_user.role in ['super_admin', 'admin'] %}
+    <div class="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Create New Department</h2>
+        <form method="POST" action="/departments" class="space-y-4 sm:flex sm:items-end sm:space-y-0 sm:space-x-4">
+            <div class="flex-1">
+                <label for="name" class="block text-sm font-medium text-gray-700">Department Name</label>
+                <input type="text"
+                       name="name"
+                       id="name"
+                       required
+                       placeholder="e.g. Engineering"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border">
+            </div>
+            <div class="flex-1">
+                <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                <input type="text"
+                       name="description"
+                       id="description"
+                       placeholder="Brief description of the department"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border">
+            </div>
+            <div class="flex-1">
+                <label for="head_id" class="block text-sm font-medium text-gray-700">Department Head</label>
+                <select name="head_id"
+                        id="head_id"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border">
+                    <option value="">— No Head —</option>
+                    {% if users is defined and users %}
+                        {% for user in users %}
+                            <option value="{{ user.id }}">{{ user.username }}</option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+            <div class="flex-shrink-0">
+                <button type="submit"
+                        class="inline-flex items-center rounded-md bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 transition-colors duration-150">
+                    <svg class="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    Create
+                </button>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+
+    {% if departments and departments|length > 0 %}
+    <div class="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 table-row-hover">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Name
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Description
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Head
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Members
+                        </th>
+                        {% if current_user and current_user.role in ['super_admin', 'admin'] %}
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                        </th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for department in departments %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <a href="/departments/{{ department.id }}" class="text-sm font-medium text-primary-600 hover:text-primary-800 transition-colors duration-150">
+                                {{ department.name }}
+                            </a>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-sm text-gray-600 line-clamp-2">
+                                {{ department.description or '—' }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if department.head %}
+                                <div class="flex items-center">
+                                    <span class="avatar-placeholder mr-2">{{ department.head.username[:1] }}</span>
+                                    <span class="text-sm text-gray-900">{{ department.head.username }}</span>
+                                </div>
+                            {% else %}
+                                <span class="text-sm text-gray-400 italic">Unassigned</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-medium text-primary-700">
+                                {{ department.member_count if department.member_count is defined else (department.members|length if department.members is defined else 0) }}
+                            </span>
+                        </td>
+                        {% if current_user and current_user.role in ['super_admin', 'admin'] %}
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div class="flex items-center justify-end space-x-3">
+                                <a href="/departments/{{ department.id }}/edit"
+                                   class="inline-flex items-center text-primary-600 hover:text-primary-800 transition-colors duration-150"
+                                   title="Edit department">
+                                    <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                    </svg>
+                                    Edit
+                                </a>
+                                <form method="POST"
+                                      action="/departments/{{ department.id }}/delete"
+                                      onsubmit="return confirm('Are you sure you want to delete the department \'{{ department.name }}\'? This action cannot be undone.');">
+                                    <button type="submit"
+                                            class="inline-flex items-center text-red-600 hover:text-red-800 transition-colors duration-150"
+                                            title="Delete department">
+                                        <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                        </svg>
+                                        Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg">
+        <div class="px-6 py-14 text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+            </svg>
+            <h3 class="mt-2 text-sm font-semibold text-gray-900">No departments</h3>
+            <p class="mt-1 text-sm text-gray-500">
+                {% if current_user and current_user.role in ['super_admin', 'admin'] %}
+                    Get started by creating a new department using the form above.
+                {% else %}
+                    No departments have been created yet. Contact an administrator to set up departments.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

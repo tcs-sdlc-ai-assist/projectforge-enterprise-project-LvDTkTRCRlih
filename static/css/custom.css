@@ -1,0 +1,397 @@
+/* ============================================
+   ProjectForge — Custom Styles
+   Beyond Tailwind CDN utilities
+   ============================================ */
+
+/* ---- Flash Message Animations ---- */
+@keyframes flash-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-1rem);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes flash-fade-out {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-1rem);
+  }
+}
+
+.flash-message {
+  animation: flash-slide-in 0.3s ease-out forwards;
+}
+
+.flash-message.fade-out {
+  animation: flash-fade-out 0.4s ease-in forwards;
+}
+
+/* ---- Kanban Board Scrollbar ---- */
+.kanban-board {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.kanban-board::-webkit-scrollbar {
+  height: 8px;
+}
+
+.kanban-board::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.kanban-board::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 4px;
+}
+
+.kanban-board::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+.kanban-column {
+  overflow-y: auto;
+  max-height: calc(100vh - 16rem);
+  scroll-behavior: smooth;
+}
+
+.kanban-column::-webkit-scrollbar {
+  width: 6px;
+}
+
+.kanban-column::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.kanban-column::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.kanban-column::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Firefox scrollbar support */
+.kanban-board {
+  scrollbar-width: thin;
+  scrollbar-color: #94a3b8 #f1f5f9;
+}
+
+.kanban-column {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+/* ---- Card Hover Effects ---- */
+.card-hover {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.card-hover:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.card-hover:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* ---- Sidebar Navigation ---- */
+.sidebar-link {
+  transition: background-color 0.15s ease, color 0.15s ease, padding-left 0.15s ease;
+}
+
+.sidebar-link:hover {
+  padding-left: 0.25rem;
+}
+
+.sidebar-link.active {
+  border-left: 3px solid #3b82f6;
+  background-color: #eff6ff;
+  color: #1d4ed8;
+}
+
+/* ---- Dropdown Animations ---- */
+@keyframes dropdown-open {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translateY(-0.25rem);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.dropdown-menu {
+  animation: dropdown-open 0.15s ease-out forwards;
+  transform-origin: top right;
+}
+
+/* ---- Modal Overlay ---- */
+@keyframes modal-backdrop-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-content-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translateY(1rem);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-backdrop {
+  animation: modal-backdrop-in 0.2s ease-out forwards;
+}
+
+.modal-content {
+  animation: modal-content-in 0.25s ease-out forwards;
+}
+
+/* ---- Loading Spinner ---- */
+@keyframes spin-slow {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  display: inline-block;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid #e2e8f0;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin-slow 0.6s linear infinite;
+}
+
+.spinner-lg {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-width: 3px;
+}
+
+/* ---- Priority Badge Colors ---- */
+.priority-critical {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.priority-high {
+  background-color: #fff7ed;
+  color: #9a3412;
+  border: 1px solid #fed7aa;
+}
+
+.priority-medium {
+  background-color: #fefce8;
+  color: #854d0e;
+  border: 1px solid #fef08a;
+}
+
+.priority-low {
+  background-color: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+/* ---- Status Badge Colors ---- */
+.status-open {
+  background-color: #eff6ff;
+  color: #1e40af;
+}
+
+.status-in-progress {
+  background-color: #fefce8;
+  color: #854d0e;
+}
+
+.status-review {
+  background-color: #faf5ff;
+  color: #6b21a8;
+}
+
+.status-done {
+  background-color: #f0fdf4;
+  color: #166534;
+}
+
+.status-blocked {
+  background-color: #fef2f2;
+  color: #991b1b;
+}
+
+/* ---- Tooltip ---- */
+.tooltip {
+  position: relative;
+}
+
+.tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-0.25rem);
+  padding: 0.25rem 0.5rem;
+  background-color: #1e293b;
+  color: #f8fafc;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  border-radius: 0.25rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 50;
+}
+
+.tooltip:hover::after {
+  opacity: 1;
+}
+
+/* ---- Truncate Multi-line ---- */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ---- Table Styles ---- */
+.table-row-hover tr {
+  transition: background-color 0.1s ease;
+}
+
+.table-row-hover tr:hover {
+  background-color: #f8fafc;
+}
+
+/* ---- Focus Ring Utility ---- */
+.focus-ring:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.focus-ring:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* ---- Drag and Drop (Kanban) ---- */
+.draggable {
+  cursor: grab;
+  user-select: none;
+}
+
+.draggable:active {
+  cursor: grabbing;
+}
+
+.draggable.dragging {
+  opacity: 0.5;
+  transform: rotate(2deg);
+}
+
+.drop-zone.drag-over {
+  background-color: #eff6ff;
+  border: 2px dashed #3b82f6;
+  border-radius: 0.5rem;
+}
+
+/* ---- Smooth Page Transitions ---- */
+.page-enter {
+  opacity: 0;
+  transform: translateY(0.5rem);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* ---- Textarea Auto-resize Helper ---- */
+textarea.auto-resize {
+  resize: vertical;
+  min-height: 5rem;
+}
+
+/* ---- Avatar Placeholder ---- */
+.avatar-placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: #3b82f6;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.avatar-placeholder-lg {
+  width: 3rem;
+  height: 3rem;
+  font-size: 1rem;
+}
+
+/* ---- Print Styles ---- */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .kanban-board {
+    overflow: visible;
+  }
+
+  .kanban-column {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .card-hover:hover {
+    box-shadow: none;
+    transform: none;
+  }
+}

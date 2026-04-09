@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit Ticket' if ticket else 'Create Ticket' }} — ProjectForge{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="md:flex md:items-center md:justify-between mb-6">
+        <div class="min-w-0 flex-1">
+            <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+                {% if ticket %}
+                    Edit Ticket: {{ ticket.title }}
+                {% else %}
+                    Create New Ticket
+                {% endif %}
+            </h1>
+            {% if project %}
+                <p class="mt-1 text-sm text-gray-500">
+                    Project: <a href="/projects/{{ project.id }}" class="text-primary-600 hover:text-primary-800 font-medium">{{ project.name }}</a>
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if errors %}
+        <div class="rounded-md bg-red-50 border border-red-200 p-4 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-red-800">There were errors with your submission</h3>
+                    <div class="mt-2 text-sm text-red-700">
+                        <ul class="list-disc space-y-1 pl-5">
+                            {% for error in errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <form method="POST"
+          action="{% if ticket %}/projects/{{ project.id }}/tickets/{{ ticket.id }}/edit{% else %}/projects/{{ project.id }}/tickets/create{% endif %}"
+          class="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-xl">
+        <div class="px-6 py-6 space-y-6">
+
+            <!-- Title -->
+            <div>
+                <label for="title" class="block text-sm font-medium leading-6 text-gray-900">
+                    Title <span class="text-red-500">*</span>
+                </label>
+                <div class="mt-2">
+                    <input type="text"
+                           name="title"
+                           id="title"
+                           required
+                           maxlength="200"
+                           value="{{ form_data.title if form_data and form_data.title else (ticket.title if ticket else '') }}"
+                           placeholder="Brief summary of the ticket"
+                           class="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label for="description" class="block text-sm font-medium leading-6 text-gray-900">
+                    Description
+                </label>
+                <div class="mt-2">
+                    <textarea name="description"
+                              id="description"
+                              rows="5"
+                              placeholder="Detailed description of the ticket..."
+                              class="auto-resize block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">{{ form_data.description if form_data and form_data.description else (ticket.description if ticket else '') }}</textarea>
+                </div>
+            </div>
+
+            <!-- Type and Priority Row -->
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <!-- Type -->
+                <div>
+                    <label for="ticket_type" class="block text-sm font-medium leading-6 text-gray-900">
+                        Type <span class="text-red-500">*</span>
+                    </label>
+                    <div class="mt-2">
+                        {% set current_type = form_data.ticket_type if form_data and form_data.ticket_type else (ticket.ticket_type if ticket else '') %}
+                        <select name="ticket_type"
+                                id="ticket_type"
+                                required
+                                class="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">
+                            <option value="" disabled {% if not current_type %}selected{% endif %}>Select type</option>
+                            <option value="bug" {% if current_type == 'bug' %}selected{% endif %}>🐛 Bug</option>
+                            <option value="feature" {% if current_type == 'feature' %}selected{% endif %}>✨ Feature</option>
+                            <option value="task" {% if current_type == 'task' %}selected{% endif %}>📋 Task</option>
+                            <option value="improvement" {% if current_type == 'improvement' %}selected{% endif %}>🔧 Improvement</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Priority -->
+                <div>
+                    <label for="priority" class="block text-sm font-medium leading-6 text-gray-900">
+                        Priority <span class="text-red-500">*</span>
+                    </label>
+                    <div class="mt-2">
+                        {% set current_priority = form_data.priority if form_data and form_data.priority else (ticket.priority if ticket else 'medium') %}
+                        <select name="priority"
+                                id="priority"
+                                required
+                                class="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">
+                            <option value="critical" {% if current_priority == 'critical' %}selected{% endif %}>🔴 Critical</option>
+                            <option value="high" {% if current_priority == 'high' %}selected{% endif %}>🟠 High</option>
+                            <option value="medium" {% if current_priority == 'medium' %}selected{% endif %}>🟡 Medium</option>
+                            <option value="low" {% if current_priority == 'low' %}selected{% endif %}>🟢 Low</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status and Story Points Row -->
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <!-- Status -->
+                <div>
+                    <label for="status" class="block text-sm font-medium leading-6 text-gray-900">
+                        Status
+                    </label>
+                    <div class="mt-2">
+                        {% set current_status = form_data.status if form_data and form_data.status else (ticket.status if ticket else 'backlog') %}
+                        <select name="status"
+                                id="status"
+                                class="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">
+                            <option value="backlog" {% if current_status == 'backlog' %}selected{% endif %}>Backlog</option>
+                            <option value="todo" {% if current_status == 'todo' %}selected{% endif %}>To Do</option>
+                            <option value="in_progress" {% if current_status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                            <option value="in_review" {% if current_status == 'in_review' %}selected{% endif %}>In Review</option>
+                            <option value="done" {% if current_status == 'done' %}selected{% endif %}>Done</option>
+                            <option value="cancelled" {% if current_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Story Points -->
+                <div>
+                    <label for="story_points" class="block text-sm font-medium leading-6 text-gray-900">
+                        Story Points
+                    </label>
+                    <div class="mt-2">
+                        <input type="number"
+                               name="story_points"
+                               id="story_points"
+                               min="0"
+                               max="100"
+                               step="1"
+                               value="{{ form_data.story_points if form_data and form_data.story_points else (ticket.story_points if ticket and ticket.story_points else '') }}"
+                               placeholder="e.g. 3"
+                               class="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assignee and Sprint Row -->
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <!-- Assignee -->
+                <div>
+                    <label for="assignee_id" class="block text-sm font-medium leading-6 text-gray-900">
+                        Assignee
+                    </label>
+                    <div class="mt-2">
+                        {% set current_assignee = form_data.assignee_id if form_data and form_data.assignee_id else (ticket.assignee_id|string if ticket and ticket.assignee_id else '') %}
+                        <select name="assignee_id"
+                                id="assignee_id"
+                                class="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">
+                            <option value="" {% if not current_assignee %}selected{% endif %}>Unassigned</option>
+                            {% if members %}
+                                {% for member in members %}
+                                    <option value="{{ member.id }}" {% if current_assignee == member.id|string %}selected{% endif %}>
+                                        {{ member.username }}{% if member.role %} ({{ member.role }}){% endif %}
+                                    </option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Sprint -->
+                <div>
+                    <label for="sprint_id" class="block text-sm font-medium leading-6 text-gray-900">
+                        Sprint
+                    </label>
+                    <div class="mt-2">
+                        {% set current_sprint = form_data.sprint_id if form_data and form_data.sprint_id else (ticket.sprint_id|string if ticket and ticket.sprint_id else '') %}
+                        <select name="sprint_id"
+                                id="sprint_id"
+                                class="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">
+                            <option value="" {% if not current_sprint %}selected{% endif %}>No Sprint</option>
+                            {% if sprints %}
+                                {% for sprint in sprints %}
+                                    <option value="{{ sprint.id }}" {% if current_sprint == sprint.id|string %}selected{% endif %}>
+                                        {{ sprint.name }}
+                                        {% if sprint.status %}({{ sprint.status }}){% endif %}
+                                    </option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parent Ticket (Subtask) -->
+            <div>
+                <label for="parent_id" class="block text-sm font-medium leading-6 text-gray-900">
+                    Parent Ticket
+                </label>
+                <p class="mt-1 text-xs text-gray-500">Select a parent ticket to make this a subtask.</p>
+                <div class="mt-2">
+                    {% set current_parent = form_data.parent_id if form_data and form_data.parent_id else (ticket.parent_id|string if ticket and ticket.parent_id else '') %}
+                    <select name="parent_id"
+                            id="parent_id"
+                            class="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">
+                        <option value="" {% if not current_parent %}selected{% endif %}>None (top-level ticket)</option>
+                        {% if available_tickets %}
+                            {% for avail_ticket in available_tickets %}
+                                {% if not ticket or avail_ticket.id != ticket.id %}
+                                    <option value="{{ avail_ticket.id }}" {% if current_parent == avail_ticket.id|string %}selected{% endif %}>
+                                        {{ avail_ticket.title }}
+                                    </option>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Labels -->
+            {% if available_labels %}
+                <div>
+                    <label class="block text-sm font-medium leading-6 text-gray-900">
+                        Labels
+                    </label>
+                    <p class="mt-1 text-xs text-gray-500">Select all labels that apply.</p>
+                    <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                        {% set current_labels = form_data.labels if form_data and form_data.labels else (ticket.labels if ticket and ticket.labels else []) %}
+                        {% for label in available_labels %}
+                            <label class="relative flex items-start cursor-pointer">
+                                <div class="flex h-6 items-center">
+                                    <input type="checkbox"
+                                           name="labels"
+                                           value="{{ label }}"
+                                           {% if label in current_labels %}checked{% endif %}
+                                           class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-600">
+                                </div>
+                                <div class="ml-2 text-sm leading-6">
+                                    <span class="text-gray-700">{{ label }}</span>
+                                </div>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex items-center justify-end gap-x-4 border-t border-gray-900/10 px-6 py-4 bg-gray-50 rounded-b-xl">
+            <a href="{% if ticket %}/projects/{{ project.id }}/tickets/{{ ticket.id }}{% else %}/projects/{{ project.id }}{% endif %}"
+               class="text-sm font-semibold leading-6 text-gray-700 hover:text-gray-900 transition-colors duration-150">
+                Cancel
+            </a>
+            <button type="submit"
+                    class="rounded-md bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 transition-colors duration-150">
+                {% if ticket %}
+                    Update Ticket
+                {% else %}
+                    Create Ticket
+                {% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

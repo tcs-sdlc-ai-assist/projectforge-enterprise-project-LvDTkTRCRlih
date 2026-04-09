@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}{{ "Edit Project" if project else "Create Project" }} — ProjectForge{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <nav class="flex" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li class="inline-flex items-center">
+                <a href="/dashboard" class="inline-flex items-center text-sm font-medium text-gray-500 hover:text-primary-600">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                    </svg>
+                    Dashboard
+                </a>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    <a href="/projects" class="ml-1 text-sm font-medium text-gray-500 hover:text-primary-600 md:ml-2">Projects</a>
+                </div>
+            </li>
+            <li aria-current="page">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="ml-1 text-sm font-medium text-gray-700 md:ml-2">{{ "Edit Project" if project else "Create Project" }}</span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+</div>
+
+<div class="max-w-3xl mx-auto">
+    <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+        <div class="px-6 py-5 border-b border-gray-200">
+            <h1 class="text-xl font-semibold text-gray-900">
+                {% if project %}
+                    Edit Project
+                {% else %}
+                    Create New Project
+                {% endif %}
+            </h1>
+            <p class="mt-1 text-sm text-gray-500">
+                {% if project %}
+                    Update the project details below.
+                {% else %}
+                    Fill in the details below to create a new project.
+                {% endif %}
+            </p>
+        </div>
+
+        <form method="POST"
+              action="{{ '/projects/' ~ project.id ~ '/edit' if project else '/projects/create' }}"
+              class="px-6 py-5 space-y-6">
+
+            {% if errors %}
+                <div class="rounded-md bg-red-50 border border-red-200 p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-red-800">Please correct the following errors:</h3>
+                            <div class="mt-2 text-sm text-red-700">
+                                <ul class="list-disc space-y-1 pl-5">
+                                    {% for error in errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Project Name -->
+            <div>
+                <label for="name" class="block text-sm font-medium text-gray-700">
+                    Project Name <span class="text-red-500">*</span>
+                </label>
+                <div class="mt-1">
+                    <input type="text"
+                           name="name"
+                           id="name"
+                           required
+                           maxlength="200"
+                           value="{{ form_data.name if form_data and form_data.name else (project.name if project else '') }}"
+                           placeholder="Enter project name"
+                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border">
+                </div>
+                <p class="mt-1 text-xs text-gray-500">A descriptive name for the project (max 200 characters).</p>
+            </div>
+
+            <!-- Project Key -->
+            <div>
+                <label for="key" class="block text-sm font-medium text-gray-700">
+                    Project Key <span class="text-red-500">*</span>
+                </label>
+                <div class="mt-1">
+                    <input type="text"
+                           name="key"
+                           id="key"
+                           required
+                           maxlength="10"
+                           value="{{ form_data.key if form_data and form_data.key else (project.key if project else '') }}"
+                           placeholder="e.g., PROJ"
+                           {% if project %}readonly{% endif %}
+                           class="block w-full rounded-md shadow-sm sm:text-sm px-3 py-2 border
+                                  {% if project %}
+                                      bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed
+                                  {% else %}
+                                      border-gray-300 focus:border-primary-500 focus:ring-primary-500
+                                  {% endif %}
+                                  uppercase">
+                </div>
+                <p class="mt-1 text-xs text-gray-500">
+                    {% if project %}
+                        Project key cannot be changed after creation.
+                    {% else %}
+                        A short unique identifier (e.g., PROJ, SCRUM). Max 10 characters, uppercase.
+                    {% endif %}
+                </p>
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-700">
+                    Description
+                </label>
+                <div class="mt-1">
+                    <textarea name="description"
+                              id="description"
+                              rows="4"
+                              placeholder="Describe the project goals, scope, and objectives..."
+                              class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border auto-resize">{{ form_data.description if form_data and form_data.description else (project.description if project else '') }}</textarea>
+                </div>
+                <p class="mt-1 text-xs text-gray-500">Optional. Provide a brief overview of the project.</p>
+            </div>
+
+            <!-- Department -->
+            <div>
+                <label for="department_id" class="block text-sm font-medium text-gray-700">
+                    Department
+                </label>
+                <div class="mt-1">
+                    <select name="department_id"
+                            id="department_id"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border">
+                        <option value="">— No Department —</option>
+                        {% if departments %}
+                            {% for department in departments %}
+                                <option value="{{ department.id }}"
+                                    {% if form_data and form_data.department_id and form_data.department_id|string == department.id|string %}
+                                        selected
+                                    {% elif project and project.department_id and project.department_id|string == department.id|string %}
+                                        selected
+                                    {% endif %}
+                                >{{ department.name }}</option>
+                            {% endfor %}
+                        {% endif %}
+                    </select>
+                </div>
+                <p class="mt-1 text-xs text-gray-500">Assign this project to a department (optional).</p>
+            </div>
+
+            <!-- Status (Edit mode only) -->
+            {% if project %}
+                <div>
+                    <label for="status" class="block text-sm font-medium text-gray-700">
+                        Status
+                    </label>
+                    <div class="mt-1">
+                        <select name="status"
+                                id="status"
+                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border">
+                            {% set current_status = form_data.status if form_data and form_data.status else (project.status if project else 'planning') %}
+                            <option value="planning" {% if current_status == 'planning' %}selected{% endif %}>Planning</option>
+                            <option value="active" {% if current_status == 'active' %}selected{% endif %}>Active</option>
+                            <option value="on_hold" {% if current_status == 'on_hold' %}selected{% endif %}>On Hold</option>
+                            <option value="completed" {% if current_status == 'completed' %}selected{% endif %}>Completed</option>
+                            <option value="archived" {% if current_status == 'archived' %}selected{% endif %}>Archived</option>
+                        </select>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">Current status of the project.</p>
+                </div>
+            {% endif %}
+
+            <!-- Form Actions -->
+            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+                <a href="{{ '/projects/' ~ project.id if project else '/projects' }}"
+                   class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors duration-150">
+                    Cancel
+                </a>
+                <button type="submit"
+                        class="inline-flex items-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors duration-150">
+                    {% if project %}
+                        <svg class="w-4 h-4 mr-1.5 -ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                        </svg>
+                        Update Project
+                    {% else %}
+                        <svg class="w-4 h-4 mr-1.5 -ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                        </svg>
+                        Create Project
+                    {% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var keyInput = document.getElementById('key');
+        if (keyInput && !keyInput.readOnly) {
+            keyInput.addEventListener('input', function(e) {
+                e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '');
+            });
+        }
+    });
+</script>
+{% endblock %}

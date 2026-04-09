@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Labels — {{ project.name }} — ProjectForge{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="sm:flex sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Labels</h1>
+            <p class="mt-1 text-sm text-gray-500">
+                Manage labels for
+                <a href="/projects/{{ project.id }}" class="text-primary-600 hover:text-primary-700 font-medium">{{ project.name }}</a>
+            </p>
+        </div>
+        <div class="mt-4 sm:mt-0">
+            <a href="/projects/{{ project.id }}"
+               class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition-colors duration-150">
+                <svg class="mr-1.5 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
+                </svg>
+                Back to Project
+            </a>
+        </div>
+    </div>
+
+    <div class="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Create New Label</h2>
+        <form method="POST" action="/projects/{{ project.id }}/labels" class="flex flex-col sm:flex-row items-start sm:items-end gap-4">
+            <div class="flex-1 w-full sm:w-auto">
+                <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Label Name</label>
+                <input type="text"
+                       id="name"
+                       name="name"
+                       required
+                       placeholder="e.g. bug, enhancement, documentation"
+                       class="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">
+            </div>
+            <div class="w-full sm:w-auto">
+                <label for="color" class="block text-sm font-medium text-gray-700 mb-1">Color</label>
+                <div class="flex items-center gap-2">
+                    <input type="color"
+                           id="color"
+                           name="color"
+                           value="#3b82f6"
+                           class="h-9 w-14 cursor-pointer rounded border border-gray-300 p-0.5">
+                    <span id="color-hex-display" class="text-sm text-gray-500 font-mono">#3b82f6</span>
+                </div>
+            </div>
+            <div class="w-full sm:w-auto">
+                <button type="submit"
+                        class="inline-flex w-full sm:w-auto items-center justify-center rounded-md bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 transition-colors duration-150">
+                    <svg class="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    Create Label
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {% if labels and labels|length > 0 %}
+        <div class="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 table-row-hover">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="py-3.5 pl-6 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                Label
+                            </th>
+                            <th scope="col" class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                Color
+                            </th>
+                            <th scope="col" class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                Tickets
+                            </th>
+                            <th scope="col" class="relative py-3.5 pl-3 pr-6 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 bg-white">
+                        {% for label in labels %}
+                            <tr id="label-row-{{ label.id }}" class="group">
+                                <td class="whitespace-nowrap py-4 pl-6 pr-3">
+                                    <div class="flex items-center gap-3">
+                                        <span class="inline-block h-4 w-4 rounded-full ring-1 ring-inset ring-gray-200 flex-shrink-0"
+                                              style="background-color: {{ label.color }};"
+                                              title="{{ label.color }}"></span>
+                                        <span class="text-sm font-medium text-gray-900">{{ label.name }}</span>
+                                    </div>
+                                </td>
+                                <td class="whitespace-nowrap px-3 py-4">
+                                    <code class="inline-flex items-center rounded bg-gray-100 px-2 py-0.5 text-xs font-mono text-gray-600">{{ label.color }}</code>
+                                </td>
+                                <td class="whitespace-nowrap px-3 py-4">
+                                    <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+                                        {{ label.ticket_count if label.ticket_count is defined else 0 }}
+                                    </span>
+                                </td>
+                                <td class="whitespace-nowrap py-4 pl-3 pr-6 text-right">
+                                    <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                                        <button type="button"
+                                                onclick="openEditModal('{{ label.id }}', '{{ label.name }}', '{{ label.color }}')"
+                                                class="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition-colors duration-150">
+                                            <svg class="mr-1 h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                            </svg>
+                                            Edit
+                                        </button>
+                                        <form method="POST"
+                                              action="/projects/{{ project.id }}/labels/{{ label.id }}/delete"
+                                              onsubmit="return confirm('Are you sure you want to delete the label \'{{ label.name }}\'? This will remove it from all associated tickets.');">
+                                            <button type="submit"
+                                                    class="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-xs font-medium text-red-700 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50 transition-colors duration-150">
+                                                <svg class="mr-1 h-3.5 w-3.5 text-red-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                                </svg>
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="border-t border-gray-200 bg-gray-50 px-6 py-3">
+                <p class="text-sm text-gray-500">
+                    {{ labels|length }} label{{ 's' if labels|length != 1 else '' }} total
+                </p>
+            </div>
+        </div>
+    {% else %}
+        <div class="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-lg">
+            <div class="px-6 py-14 text-center">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
+                </svg>
+                <h3 class="mt-4 text-sm font-semibold text-gray-900">No labels yet</h3>
+                <p class="mt-1 text-sm text-gray-500">
+                    Get started by creating a label using the form above. Labels help you categorize and filter tickets.
+                </p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<div id="edit-modal" class="hidden relative z-50" aria-labelledby="edit-modal-title" role="dialog" aria-modal="true">
+    <div class="modal-backdrop fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+    <div class="fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="modal-content relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-md sm:p-6">
+                <div class="absolute right-0 top-0 pr-4 pt-4">
+                    <button type="button"
+                            onclick="closeEditModal()"
+                            class="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+                        <span class="sr-only">Close</span>
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold leading-6 text-gray-900" id="edit-modal-title">Edit Label</h3>
+                    <form id="edit-label-form" method="POST" action="" class="mt-4 space-y-4">
+                        <div>
+                            <label for="edit-name" class="block text-sm font-medium text-gray-700 mb-1">Label Name</label>
+                            <input type="text"
+                                   id="edit-name"
+                                   name="name"
+                                   required
+                                   class="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6">
+                        </div>
+                        <div>
+                            <label for="edit-color" class="block text-sm font-medium text-gray-700 mb-1">Color</label>
+                            <div class="flex items-center gap-2">
+                                <input type="color"
+                                       id="edit-color"
+                                       name="color"
+                                       class="h-9 w-14 cursor-pointer rounded border border-gray-300 p-0.5">
+                                <span id="edit-color-hex-display" class="text-sm text-gray-500 font-mono">#3b82f6</span>
+                            </div>
+                        </div>
+                        <div class="mt-5 sm:mt-6 flex gap-3">
+                            <button type="submit"
+                                    class="flex-1 inline-flex justify-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 transition-colors duration-150">
+                                Save Changes
+                            </button>
+                            <button type="button"
+                                    onclick="closeEditModal()"
+                                    class="flex-1 inline-flex justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition-colors duration-150">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var colorInput = document.getElementById('color');
+        var colorDisplay = document.getElementById('color-hex-display');
+        if (colorInput && colorDisplay) {
+            colorInput.addEventListener('input', function() {
+                colorDisplay.textContent = colorInput.value;
+            });
+        }
+
+        var editColorInput = document.getElementById('edit-color');
+        var editColorDisplay = document.getElementById('edit-color-hex-display');
+        if (editColorInput && editColorDisplay) {
+            editColorInput.addEventListener('input', function() {
+                editColorDisplay.textContent = editColorInput.value;
+            });
+        }
+    });
+
+    function openEditModal(labelId, labelName, labelColor) {
+        var modal = document.getElementById('edit-modal');
+        var form = document.getElementById('edit-label-form');
+        var nameInput = document.getElementById('edit-name');
+        var colorInput = document.getElementById('edit-color');
+        var colorDisplay = document.getElementById('edit-color-hex-display');
+
+        form.action = '/projects/{{ project.id }}/labels/' + labelId + '/edit';
+        nameInput.value = labelName;
+        colorInput.value = labelColor;
+        colorDisplay.textContent = labelColor;
+
+        modal.classList.remove('hidden');
+    }
+
+    function closeEditModal() {
+        var modal = document.getElementById('edit-modal');
+        modal.classList.add('hidden');
+    }
+
+    document.getElementById('edit-modal').addEventListener('click', function(e) {
+        if (e.target === this || e.target.classList.contains('modal-backdrop')) {
+            closeEditModal();
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            var modal = document.getElementById('edit-modal');
+            if (!modal.classList.contains('hidden')) {
+                closeEditModal();
+            }
+        }
+    });
+</script>
+{% endblock %}
